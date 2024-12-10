@@ -1,14 +1,15 @@
 import { useState, useRef } from 'react';
 import { Stage, Layer, Arrow } from 'react-konva';
-import Konva from 'konva';
+//import Konva from 'konva';
 
 export default function ColoredRect() {
+  const [clicker, setClicker] = useState(false)
   const [arrows, setArrows] = useState([])
   const [start, setStart] = useState([])
   const isDrawing = useRef(false)
 
   const handleMouseDown=(e)=>{
-
+    if (!clicker) return
     isDrawing.current=true
     console.log("Pendown")
     const pos= e.target.getStage().getPointerPosition()
@@ -18,7 +19,7 @@ export default function ColoredRect() {
   }
 
   const handleMouseMove=(e)=>{
-    if(!isDrawing.current || !start) return
+    if(!clicker || !isDrawing.current || !start) return
 
     const pos=e.target.getStage().getPointerPosition()
     const updatedArrows = arrows.slice()
@@ -27,6 +28,7 @@ export default function ColoredRect() {
   }
 
   const handleMouseUp=()=>{
+    if (!clicker) return
     isDrawing.current=false
     setStart(null)
   }
@@ -34,6 +36,11 @@ export default function ColoredRect() {
 
   return (
     <>
+        <button
+          onClick={()=>setClicker(!clicker)}
+        >
+          {clicker ? 'Stop Drawing': 'Start Drawing'}
+        </button>
         
         <Stage
             width={window.innerWidth-20}
