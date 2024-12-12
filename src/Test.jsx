@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Stage, Layer, Arrow } from 'react-konva';
+import React, { useState, useRef } from 'react';
+import { Stage, Layer, Arrow, Text, Rect } from 'react-konva';
 import html2canvas from 'html2canvas';
 //import Konva from 'konva';
 
@@ -9,16 +9,17 @@ export default function ColoredRect() {
   const [arrows, setArrows] = useState([])
   const [start, setStart] = useState([])
   const [webURL, setWebURL] = useState('http://localhost:3000/auth/sign-in')
+  const [menuPosition, setMenuPosition] = useState(null)
+  const [newComment, setNewComment] = useState('')
+  const [comments, setComments] = useState([])
 
   const isDrawing = useRef(false)
   const stageRef = useRef(null)
   const iframeRef = useRef(null)
 
-
   const handleMouseDown=(e)=>{
     if (!clicker) return
     isDrawing.current=true
-    console.log("Pendown")
     const pos= e.target.getStage().getPointerPosition()
     setStart(pos)
     setArrows([...arrows, {points:[pos.x, pos.y, pos.x, pos.y]}])
@@ -34,14 +35,23 @@ export default function ColoredRect() {
     setArrows(updatedArrows)
   }
 
-  const handleMouseUp=()=>{
+  const handleMouseUp=(e)=>{
     if (!clicker) return
     isDrawing.current=false
     setStart(null)
+
+
+    const stage = e.target.getStage()
+    const position = stage.getPointerPosition()
+    setMenuPosition({
+      x: position.x,
+      y: position.y
+    }) 
   }
 
   const handleClearCanvas=()=>{
     setArrows([])
+    setComments([])
   }
 
 
@@ -73,7 +83,7 @@ export default function ColoredRect() {
           const finalURL = combinedCanvas.toDataURL();
           console.log('Screenshot URL:', finalURL);
         };
-        
+
         const konvaURL = stageRef.current.toDataURL();
         konvaImage.src = konvaURL;
       } catch (error) {
@@ -89,16 +99,57 @@ export default function ColoredRect() {
     setWebURL(e.target.value)
   }
 
+  const handleComment=(e)=>{
+    setNewComment(e.target.value)
+  }
+
+  const handlePostComment=()=>{
+    if(newComment && menuPosition){
+      setComments([...comments, {text: newComment, x:menuPosition.x, y:menuPosition.y}])
+      setNewComment('')
+      setMenuPosition(null)
+    }
+  }
+
+  const handleStageClick=(e)=>{
+    const stage = e.target.getStage()
+    const position = stage.getPointerPosition()
+    setMenuPosition({
+      x: position.x,
+      y: position.y
+    })
+
+  }
+
+  const closeMenu = () => {
+    setMenuPosition(null)
+  }
+
+  const handleToggleDraw = ()=> {
+    setClicker(!clicker)
+    closeMenu()
+  }
+
+  const handleMenuClearCanvas = () =>{
+    handleClearCanvas()
+    closeMenu()
+  }
+
+  const handleMenuScreenShot = () =>{
+    takeScreenShot()
+    closeMenu()
+  }
+
+  const textWidth=(text)=>{
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    context.font = '16px Arial';
+    return context.measureText(text).width;
+  }
+
 
   return (
     <>
-        <button
-          onClick={()=>setClicker(!clicker)}
-        >
-          {clicker ? 'Stop Drawing': 'Start Drawing'}
-        </button>
-        <button onClick={handleClearCanvas}>Clear</button>
-        <button onClick={takeScreenShot}>ScreenShot</button>
         <input
           type='text'
           value={webURL}
@@ -119,6 +170,7 @@ export default function ColoredRect() {
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               ref={stageRef}
+              onClick={handleStageClick}
               style={{position:'absolute', top:0, left:0 ,zIndex:2, backgroundColor: 'transparent'}}
           >
               <Layer>
@@ -132,8 +184,85 @@ export default function ColoredRect() {
                           pointerWidth={10}
                       />
                   ))}
+                  {comments.map((comment, index) => {
+                  const padding = 15;
+                  const textHeight = 13;
+
+                  return (
+                    <React.Fragment key={index}>
+                      <Rect
+                        x={comment.x - (textWidth(comment.text) + padding * 2) / 2}
+                        y={comment.y - (textHeight + padding * 2) / 2}
+                        width={textWidth(comment.text) + padding * 2}
+                        height={textHeight + padding * 2}
+                        fill="white"
+                        stroke="black"
+                        strokeWidth={3}
+                        cornerRadius={8}
+                      />
+                      <Text
+                        x={comment.x - textWidth(comment.text) / 2}
+                        y={comment.y - textHeight / 2}
+                        text={comment.text}
+                        fontSize={16}
+                        fill="black"
+                        align="center"
+                        verticalAlign="middle"
+                      />
+                    </React.Fragment>
+                  );
+                })}
+
               </Layer>
           </Stage>
+          {menuPosition && (
+            <div
+            style={{
+              position: 'absolute',
+              top: menuPosition.y,
+              left: menuPosition.x,
+              background: 'white',
+              boxShadow: '0px 4px 6px rgba(0,0,0,0.1)',
+              zIndex: 3,
+              borderRadius: '5px',
+              padding: '10px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                gap: '5px'
+              }}
+            >
+              <input
+                type="text"
+                value={newComment}
+                placeholder="Add a comment..."
+                onChange={handleComment}
+                style={{ flex: 1 }}
+              />
+              <button onClick={handlePostComment}>Post</button>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '5px'
+              }}
+            >
+              <button onClick={handleToggleDraw}>
+                {clicker ? 'Stop Drawing' : 'Start Drawing'}
+              </button>
+              <button onClick={handleMenuClearCanvas}>Clear</button>
+              <button onClick={handleMenuScreenShot}>Screenshot</button>
+            </div>
+          </div>
+          
+          )}
+
           </div>
     </>
   );
