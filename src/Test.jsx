@@ -1,6 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { Stage, Layer, Arrow, Text, Rect } from 'react-konva';
+import { MdArrowOutward } from "react-icons/md";
+import { GrClear } from "react-icons/gr";
+import { RiScreenshotLine } from "react-icons/ri";
 import html2canvas from 'html2canvas';
+import './Test.css'
 //import Konva from 'konva';
 
 export default function ColoredRect() {
@@ -139,7 +143,7 @@ export default function ColoredRect() {
     takeScreenShot()
     closeMenu()
   }
-
+ 
   const textWidth=(text)=>{
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -227,6 +231,8 @@ export default function ColoredRect() {
               borderRadius: '5px',
               padding: '10px',
               display: 'flex',
+              width: '250px',
+              height: '90px',
               flexDirection: 'column',
               gap: '10px'
             }}
@@ -242,22 +248,35 @@ export default function ColoredRect() {
                 value={newComment}
                 placeholder="Add a comment..."
                 onChange={handleComment}
-                style={{ flex: 1 }}
+                style={{
+                  flex: 1,
+                  width: '300px',
+                  height: '40px',
+                  padding: '10px',
+                  fontSize: '16px',
+                  borderRadius: '5px',
+                  boxSizing: 'border-box'}}
               />
-              <button onClick={handlePostComment}>Post</button>
             </div>
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
+                alignItems:'center',
                 gap: '5px'
               }}
             >
-              <button onClick={handleToggleDraw}>
-                {clicker ? 'Stop Drawing' : 'Start Drawing'}
-              </button>
-              <button onClick={handleMenuClearCanvas}>Clear</button>
-              <button onClick={handleMenuScreenShot}>Screenshot</button>
+              <div style={{display:'flex', justifyContent:'space-between',padding:'10px', gap:'10px'}}>
+                <button
+                  className={`arrow-button ${clicker ? 'pressed' : ''}`}
+                  onClick={handleToggleDraw}
+                >
+                  {clicker ? <MdArrowOutward /> : <MdArrowOutward />}
+                </button>
+                  <button className='svg-button' onClick={handleMenuClearCanvas}><GrClear/></button>
+                  <button className='svg-button' onClick={handleMenuScreenShot}><RiScreenshotLine/></button>
+              </div>
+              {newComment && <button className='post-button' style={{backgroundColor:'#1b00fb', fontSize:'12px', color:'white'}} onClick={handlePostComment}>Post</button>}
             </div>
           </div>
           
