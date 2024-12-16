@@ -70,7 +70,7 @@ export default function ColoredRect() {
         
         console.log("iframe Content",iframeDoc)
         
-        const iframeCanvas = await html2canvas(iframe.body);
+        const iframeCanvas = await html2canvas(iframeDoc.body);
 
         console.log("image data", iframeCanvas)
         const combinedCanvas = document.createElement('canvas');
